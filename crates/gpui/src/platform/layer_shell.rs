@@ -3,6 +3,11 @@ use thiserror::Error;
 
 use crate::Pixels;
 
+/// On Wayland, layer-shell windows with this namespace are created as `ext-session-lock-v1`
+/// lock surfaces on their output instead. Their other layer-shell options are ignored. The first
+/// such window locks the session and closing the last one unlocks it.
+pub const SESSION_LOCK_NAMESPACE: &str = "gpui-session-lock";
+
 /// The layer the surface is rendered on. Multiple surfaces can share a layer, and ordering within
 /// a single layer is undefined.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
