@@ -2502,6 +2502,23 @@ impl Window {
         self.platform_window.set_exclusive_edge(edge);
     }
 
+    /// Move a layer-shell surface to another layer. With
+    /// [`Window::set_keyboard_interactivity`], this lets a surface stay mapped while
+    /// hidden below everything and come forward without being recreated, which is
+    /// faster than opening a new window. Needs layer-shell version 2; ignored on older
+    /// compositors. (Wayland layer-shell windows only)
+    #[cfg(all(target_os = "linux", feature = "wayland"))]
+    pub fn set_layer(&self, layer: crate::layer_shell::Layer) {
+        self.platform_window.set_layer(layer);
+    }
+
+    /// Change whether a layer-shell surface takes keyboard focus. (Wayland
+    /// layer-shell windows only)
+    #[cfg(all(target_os = "linux", feature = "wayland"))]
+    pub fn set_keyboard_interactivity(&self, value: crate::layer_shell::KeyboardInteractivity) {
+        self.platform_window.set_keyboard_interactivity(value);
+    }
+
     /// Start an interactive window resize operation if this window is resizable.
     pub fn start_window_resize(&self, edge: ResizeEdge) {
         if self.is_resizable {
