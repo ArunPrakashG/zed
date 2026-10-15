@@ -1,4 +1,6 @@
 mod cosmic_text_system;
+#[cfg(any(target_os = "linux", target_os = "freebsd"))]
+mod font_db_cache;
 mod wgpu_atlas;
 mod wgpu_context;
 mod wgpu_renderer;

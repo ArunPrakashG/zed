@@ -42,6 +42,8 @@ gpui_util.workspace = true
 font-kit = { workspace = true, optional = true }
 
 [target.'cfg(any(target_os = "linux", target_os = "freebsd"))'.dependencies]
+fontconfig-parser = { version = "0.5", default-features = false }
+sys-locale.workspace = true
 wgpu = { workspace = true, features = ["std", "parking_lot", "metal", "gles", "vulkan", "wgsl", "webgpu"] }
 
 [target.'cfg(not(any(target_os = "linux", target_os = "freebsd")))'.dependencies]

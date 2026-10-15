@@ -128,9 +128,41 @@ impl CosmicTextSystem {
             .missing_glyphs(text, font_runs, missing_text_indices)
     }
 
+    /// Loads every system font. On Linux, setting `GPUI_FONT_DB_CACHE` (`1` for the default
+    /// location, or a file path) opts into [`Self::new_with_font_cache`].
     pub fn new(system_font_fallback: &str) -> Self {
-        let font_system = FontSystem::new();
+        #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+        if let Some(path) = crate::font_db_cache::cache_path_from_env() {
+            return Self::new_with_font_cache(system_font_fallback, &path);
+        }
 
+        Self::from_font_system(system_font_fallback, FontSystem::new())
+    }
+
+    /// Like [`Self::new`], but restores the parsed system font database from `cache_path` instead
+    /// of opening every font file, and rewrites the cache when the font directories changed.
+    ///
+    /// The resulting database is the same one [`Self::new`] builds, so fallback fonts resolve
+    /// identically. This avoids reading each font file up front, which dominates startup time when
+    /// the files are not in the page cache.
+    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+    pub fn new_with_font_cache(system_font_fallback: &str, cache_path: &std::path::Path) -> Self {
+        let mut db = cosmic_text::fontdb::Database::new();
+        crate::font_db_cache::load_system_fonts(&mut db, cache_path);
+
+        // Same defaults as `FontSystem::new`.
+        db.set_monospace_family("Noto Sans Mono");
+        db.set_sans_serif_family("Open Sans");
+        db.set_serif_family("DejaVu Serif");
+
+        let locale = sys_locale::get_locale().unwrap_or_else(|| "en-US".to_string());
+        Self::from_font_system(
+            system_font_fallback,
+            FontSystem::new_with_locale_and_db(locale, db),
+        )
+    }
+
+    fn from_font_system(system_font_fallback: &str, font_system: FontSystem) -> Self {
         Self(RwLock::new(CosmicTextSystemState {
             font_system,
             scratch: ShapeBuffer::default(),
